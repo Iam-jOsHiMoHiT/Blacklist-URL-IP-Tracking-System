@@ -1,6 +1,7 @@
 #include "but_header.hpp"
 #include <fstream>
 #include <iostream>
+using namespace std;
 
 data::data()
 {
@@ -8,34 +9,39 @@ data::data()
     historyFile = "history.txt";
 }
 
+
 bool data::loadBlacklist(hashTable& table)
 {
-    std::ifstream in(blacklistFile);
+    ifstream in(blacklistFile);
 
     if (!in.is_open())
     {
-        std::cerr << "[data] Could not open " << blacklistFile << "\n";
+        cerr << "[data] Could not open " << blacklistFile << "\n";
         return false;
     }
 
-    std::string url;
-    while (std::getline(in, url))
+    string url;
+    while (getline(in, url))
     {
-        if (url.empty()) continue;  
-        table.insert(url);           
+        if (url.empty()) continue;   
+        table.insert(url);          
     }
 
     in.close();
     return true;
 }
 
-bool data::saveResult(std::string url, bool blocked)
+// ---------------------------------------------------------
+// saveResult: append one line to history.txt
+// Format:  <url> ALLOWED   or   <url> BLOCKED
+// ---------------------------------------------------------
+bool data::saveResult(string url, bool blocked)
 {
-    std::ofstream out(historyFile, std::ios::app);  
+    ofstream out(historyFile, ios::app);   
 
     if (!out.is_open())
     {
-        std::cerr << "[data] Could not open " << historyFile << "\n";
+        cerr << "[data] Could not open " << historyFile << "\n";
         return false;
     }
 
@@ -44,18 +50,18 @@ bool data::saveResult(std::string url, bool blocked)
     return true;
 }
 
-std::vector<std::string> data::getHistory()
+vector<string> data::getHistory()
 {
-    std::vector<std::string> history;
-    std::ifstream in(historyFile);
+    vector<string> history;
+    ifstream in(historyFile);
 
     if (!in.is_open())
     {
         return history;   
     }
 
-    std::string line;
-    while (std::getline(in, line))
+    string line;
+    while (getline(in, line))
     {
         if (line.empty()) continue;
         history.push_back(line);
