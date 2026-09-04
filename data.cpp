@@ -31,10 +31,7 @@ bool data::loadBlacklist(hashTable& table)
     return true;
 }
 
-// ---------------------------------------------------------
-// saveResult: append one line to history.txt
-// Format:  <url> ALLOWED   or   <url> BLOCKED
-// ---------------------------------------------------------
+
 bool data::saveResult(string url, bool blocked)
 {
     ofstream out(historyFile, ios::app);   
