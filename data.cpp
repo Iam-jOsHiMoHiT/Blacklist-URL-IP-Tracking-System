@@ -21,8 +21,8 @@ bool data::loadBlacklist(hashTable& table)
     std::string url;
     while (std::getline(in, url))
     {
-        if (url.empty()) continue;   // skip blank lines
-        table.insert(url);           // hand each entry to the hash table
+        if (url.empty()) continue;  
+        table.insert(url);           
     }
 
     in.close();
@@ -31,7 +31,7 @@ bool data::loadBlacklist(hashTable& table)
 
 bool data::saveResult(std::string url, bool blocked)
 {
-    std::ofstream out(historyFile, std::ios::app);   // append, never overwrite
+    std::ofstream out(historyFile, std::ios::app);  
 
     if (!out.is_open())
     {
@@ -51,7 +51,7 @@ std::vector<std::string> data::getHistory()
 
     if (!in.is_open())
     {
-        return history;   // empty vector if no history yet — not an error
+        return history;   
     }
 
     std::string line;
