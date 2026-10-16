@@ -1,0 +1,17 @@
+# Runtime Rebels sample blacklist - FAKE data only.
+# .test domains never resolve; 192.0.2.x and 198.51.100.x are reserved documentation addresses.
+bank-verify.test
+free-prize.test
+login-secure.test
+paypal-update.test
+
+# Same site as bank-verify.test after normalization -> counted as duplicate
+HTTP://www.Bank-Verify.TEST/
+
+# Single IP and an IP range
+192.0.2.10
+198.51.100.0/24
+
+# Invalid lines -> rejected by the Normalizer
+999.1.1.1
+not a website

@@ -1,0 +1,10 @@
+bank-verify.test|DOMAIN|sample|1792157430
+free-prize.test|DOMAIN|sample|1792157430
+login-secure.test|DOMAIN|sample|1792157430
+paypal-update.test|DOMAIN|sample|1792157430
+192.0.2.10|IPV4|sample|1792157430
+198.51.100.0/24|CIDR|sample|1792157430
+malware-drop.test/files/invoice.exe|URL|urlhaus|1792157430
+cdn.fake-host.test/payload/update.bin|URL|urlhaus|1792157430
+203.0.113.45/bins/loader.sh|URL|urlhaus|1792157430
+shop.example.test/wp-content/uploads/evil.php|URL|urlhaus|1792157430
