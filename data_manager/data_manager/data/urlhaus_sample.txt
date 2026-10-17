@@ -1,9 +1,0 @@
-################################################################
-# FAKE sample in URLhaus plain-text format (testing only)      #
-# Real dumps: urlhaus.abuse.ch/api -> "Database dumps"          #
-################################################################
-http://malware-drop.test/files/invoice.exe
-https://cdn.fake-host.test/payload/update.bin
-http://203.0.113.45/bins/loader.sh
-http://shop.example.test/wp-content/uploads/evil.php
-http://malware-drop.test/files/invoice.exe
