@@ -1,58 +1,65 @@
 #include "but_header.hpp"
-#include <iostream>
 
-QNode::QNode(std::string value)
+QNode::QNode(const char* value)
 {
-    data = value;
-    next = nullptr;
+    safeCopy(data, value, MAX_URL);
+    next = NULL;
 }
 
 Queue::Queue()
 {
-    front = nullptr;
-    rear = nullptr;
+    front = NULL;
+    rear = NULL;
     count = 0;
+}
+
+Queue::~Queue()
+{
+    while (front != NULL) {
+        QNode* temp = front;
+        front = front->next;
+        delete temp;
+    }
+}
+
+bool Queue::enqueue(const char* url)
+{
+    if (!isValidUrl(url))
+        return false;
+
+    QNode* node = new QNode(url);
+
+    if (rear == NULL) {
+        front = node;
+        rear = node;
+    } else {
+        rear->next = node;
+        rear = node;
+    }
+    count++;
+    return true;
+}
+
+bool Queue::dequeue(char* out)
+{
+    if (front == NULL || out == NULL)
+        return false;
+
+    QNode* temp = front;
+    safeCopy(out, temp->data, MAX_URL);
+    front = front->next;
+
+    if (front == NULL)
+        rear = NULL;
+
+    delete temp;
+    count--;
+    return true;
 }
 
 bool Queue::isEmpty()
 {
-    return front == nullptr;
-}
-
-void Queue::enqueue(std::string url)
-{
-    QNode* newNode = new QNode(url);
-
-    if (isEmpty()) {
-        front = newNode;
-        rear = newNode;
-    } else {
-        rear->next = newNode;
-        rear = newNode;
-    }
-
-    count++;
-}
-
-std::string Queue::dequeue()
-{
-    if (isEmpty()) {
-        std::cout << "Queue is empty!\n";
-        return "";
-    }
-
-    QNode* temp = front;
-    std::string result = temp->data;
-
-    front = front->next;
-    if (front == nullptr) {
-        rear = nullptr;
-    }
-
-    delete temp;
-    count--;
-
-    return result;
+    return front == NULL;
 }
 
 int Queue::size()
