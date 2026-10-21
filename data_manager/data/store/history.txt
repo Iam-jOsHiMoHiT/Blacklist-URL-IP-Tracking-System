@@ -1,2 +1,0 @@
-1792157430|guest|1|bank-verify.test|DENY|HashTable|0
-1792157430|guest|2|example.org|ALLOW|-|0
