@@ -2,7 +2,6 @@
 #include <cctype>
 using namespace std;
 
-// ================= PRIVATE HELPERS =================
 
 string Normalizer::trim(string s) {
     while (!s.empty() && s[0] == ' ') s.erase(0, 1);
@@ -34,9 +33,9 @@ bool Normalizer::isValidHost(const string &host) {
     }
 
     if (h.empty()) return false;
-    if (h[0] == '.' || h.back() == '.') return false;   // ".evil.com" or "evil.com."
-    if (h.find("..") != string::npos) return false;      // empty label
-    if (h.find('.') == string::npos) return false;       // needs at least one dot
+    if (h[0] == '.' || h.back() == '.') return false;   
+    if (h.find("..") != string::npos) return false;      
+    if (h.find('.') == string::npos) return false;      
 
     for (char c : h)
         if (!isalnum((unsigned char)c) && c != '-' && c != '.') return false;
@@ -49,36 +48,36 @@ bool Normalizer::isValidHost(const string &host) {
     return true;
 }
 
-// ================= PUBLIC FUNCTIONS =================
+
 
 string Normalizer::normalizeUrl(string url) {
     url = trim(url);
 
-    size_t pos = url.find("://");                         // remove scheme
+    size_t pos = url.find("://");                        
     if (pos != string::npos) url = url.substr(pos + 3);
 
-    pos = url.find('#');                                  // remove fragment
+    pos = url.find('#');                                 
     if (pos != string::npos) url = url.substr(0, pos);
 
-    size_t cut = url.find_first_of("/?");                 // split host / rest
+    size_t cut = url.find_first_of("/?");                
     string host = (cut == string::npos) ? url : url.substr(0, cut);
     string rest = (cut == string::npos) ? ""  : url.substr(cut);
 
-    pos = host.rfind('@');                                // remove "user@"
+    pos = host.rfind('@');                               
     if (pos != string::npos) host = host.substr(pos + 1);
 
-    for (size_t i = 0; i < host.size(); i++)              // lowercase host
+    for (size_t i = 0; i < host.size(); i++)              
         host[i] = tolower((unsigned char)host[i]);
 
-    pos = host.rfind(':');                                // remove :80 / :443
+    pos = host.rfind(':');                                
     if (pos != string::npos) {
         string port = host.substr(pos + 1);
         if (port == "80" || port == "443") host = host.substr(0, pos);
     }
 
-    if (host.substr(0, 4) == "www.") host = host.substr(4);   // remove www.
+    if (host.substr(0, 4) == "www.") host = host.substr(4);   
 
-    if (!rest.empty() && rest.back() == '/') rest.pop_back(); // trailing '/'
+    if (!rest.empty() && rest.back() == '/') rest.pop_back(); 
 
     return host + rest;
 }
@@ -109,25 +108,25 @@ bool Normalizer::parseIPv4(const string &ip, uint32_t &result) {
 InputType Normalizer::classify(const string &input) {
     string s = trim(input);
     if (s.empty()) return InputType::INVALID;
-    if (s.find(' ') != string::npos) return InputType::INVALID;   // space inside
+    if (s.find(' ') != string::npos) return InputType::INVALID;   
 
     uint32_t num;
 
-    // 1. CIDR?  "IP/number"
+    
     size_t slash = s.find('/');
     if (slash != string::npos) {
         string ipPart = s.substr(0, slash);
         string bits   = s.substr(slash + 1);
         if (parseIPv4(ipPart, num) && isDigits(bits)) {
             if (bits.size() <= 2 && stoi(bits) <= 32) return InputType::CIDR;
-            return InputType::INVALID;                             // e.g. /33
+            return InputType::INVALID;
         }
     }
 
-    // 2. Plain IPv4?
+
     if (parseIPv4(s, num)) return InputType::IPV4;
 
-    // 3. URL?  Clean it, then check the host part
+    
     string clean = normalizeUrl(s);
     size_t cut = clean.find_first_of("/?");
     string host = (cut == string::npos) ? clean : clean.substr(0, cut);
