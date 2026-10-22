@@ -40,7 +40,7 @@ bool Normalizer::isValidHost(const string &host) {
     for (char c : h)
         if (!isalnum((unsigned char)c) && c != '-' && c != '.') return false;
 
-    // Only digits and dots? Then it must be a real IP (catches "999.1.1.1")
+    
     if (isDigitsAndDots(h)) {
         uint32_t num;
         return parseIPv4(h, num);
