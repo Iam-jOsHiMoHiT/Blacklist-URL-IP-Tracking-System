@@ -25,7 +25,7 @@ bool Normalizer::isDigitsAndDots(const string &s) {
 bool Normalizer::isValidHost(const string &host) {
     string h = host;
 
-    // Separate the port, if any: "evil.com:8080"
+    
     size_t colon = h.rfind(':');
     if (colon != string::npos) {
         if (!isDigits(h.substr(colon + 1))) return false;
