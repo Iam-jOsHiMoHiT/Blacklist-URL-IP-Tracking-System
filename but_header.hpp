@@ -6,9 +6,7 @@
 const int MAX_URL  = 256;
 const int MAX_LINE = 300;
 
-void safeCopy(char* dest, const char* src, int destSize);
-void toLowerStr(char* s);
-void trimStr(char* s);
+
 
 class QNode{
 
@@ -110,5 +108,9 @@ class display{
     void displayHistory(char lines[][MAX_LINE], int count);
 
 };
+
+void safeCopy(char* dest, const char* src, int destSize);
+void toLowerStr(char* s);
+void trimStr(char* s);
 
 #endif
