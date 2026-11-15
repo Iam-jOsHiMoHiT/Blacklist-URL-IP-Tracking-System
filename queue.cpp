@@ -10,7 +10,6 @@ Queue::Queue()
 {
     front = NULL;
     rear = NULL;
-    count = 0;
 }
 
 Queue::~Queue()
@@ -36,7 +35,6 @@ bool Queue::enqueue(const char* url)
         rear->next = node;
         rear = node;
     }
-    count++;
     return true;
 }
 
@@ -53,16 +51,5 @@ bool Queue::dequeue(char* out)
         rear = NULL;
 
     delete temp;
-    count--;
     return true;
-}
-
-bool Queue::isEmpty()
-{
-    return front == NULL;
-}
-
-int Queue::size()
-{
-    return count;
 }
