@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blacklist URL/IP Checker</title>
+<style>
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #f1f4f9;
+    margin: 0;
+    padding: 40px 16px;
+    color: #1f2937;
+  }
+  .box {
+    max-width: 560px;
+    margin: 0 auto 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  h1 { margin: 0 0 4px; font-size: 24px; }
+  h2 { font-size: 16px; margin: 0 0 8px; }
+  .sub { margin: 0 0 20px; color: #6b7280; font-size: 14px; }
+  .hidden { display: none; }
+
+  .row { display: flex; gap: 8px; margin-bottom: 8px; }
+  input {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+  }
+  button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+  }
+  button:hover { background: #1d4ed8; }
+  button.light { background: #e5e7eb; color: #1f2937; padding: 8px 14px; font-size: 14px; }
+  button.light:hover { background: #d1d5db; }
+
+  #topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 14px; }
+  #roleTag { background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+
+  .msg { margin-top: 8px; font-size: 14px; min-height: 18px; }
+  .msg.bad { color: #dc2626; }
+  .msg.good { color: #16a34a; }
+
+  #result {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 8px;
+    display: none;
+  }
+  #result.BLOCKED { background: #fee2e2; border: 1px solid #ef4444; }
+  #result.ALLOWED { background: #dcfce7; border: 1px solid #22c55e; }
+  #result.INVALID { background: #fef9c3; border: 1px solid #eab308; }
+  #status { font-size: 22px; font-weight: bold; }
+  #detail { margin-top: 6px; font-size: 14px; word-break: break-all; }
+  #ml { margin-top: 10px; font-size: 14px; }
+  #ml.warn { color: #b45309; font-weight: bold; }
+
+  #history { margin: 0; padding: 0; list-style: none; font-size: 13px; }
+  #history li { padding: 6px 0; border-bottom: 1px solid #e5e7eb; word-break: break-all; }
+  .tag-BLOCKED { color: #dc2626; font-weight: bold; }
+  .tag-ALLOWED { color: #16a34a; font-weight: bold; }
+</style>
+</head>
+<body>
+
+  <div class="box" id="loginBox">
+    <h1>Blacklist URL/IP Checker</h1>
+    <p class="sub">Please log in.</p>
+    <div class="row"><input id="username" type="text" placeholder="Username" autofocus></div>
+    <div class="row">
+      <input id="password" type="password" placeholder="Password">
+      <button id="loginBtn">Login</button>
+    </div>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <div id="appBox" class="hidden">
+    <div class="box">
+      <div id="topbar">
+        <span>Logged in as <b id="userName"></b> <span id="roleTag"></span></span>
+        <button class="light" id="logoutBtn">Logout</button>
+      </div>
+
+      <h1>Check a URL or IP</h1>
+      <p class="sub">Type a URL or an IPv4 address to see if it is blacklisted.</p>
+
+      <div class="row">
+        <input id="address" type="text" placeholder="e.g. account-access-1732.test or 192.0.2.5">
+        <button id="checkBtn">Check</button>
+      </div>
+
+      <div id="result">
+        <div id="status"></div>
+        <div id="detail"></div>
+        <div id="ml"></div>
+      </div>
+    </div>
+
+    <div class="box hidden" id="adminBox">
+      <h2>Admin: add to blacklist</h2>
+      <div class="row">
+        <input id="newEntry" type="text" placeholder="URL, IP or CIDR range, e.g. evil-site.test">
+        <button id="addBtn">Add</button>
+      </div>
+      <div class="msg" id="addMsg"></div>
+    </div>
+
+    <div class="box">
+      <h2>Recent checks</h2>
+      <ul id="history"></ul>
+    </div>
+  </div>
+
+<script>
+  var token = "";
+  var role = "";
+
+  function $(id) { return document.getElementById(id); }
+
+  function login() {
+    var body = "user=" + encodeURIComponent($("username").value) +
+               "&pass=" + encodeURIComponent($("password").value);
+
+    fetch("/login", { method: "POST", body: body })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.ok) {
+          $("loginMsg").className = "msg bad";
+          $("loginMsg").textContent = data.message;
+          return;
+        }
+        token = data.token;
+        role = data.role;
+        try { sessionStorage.setItem("token", token); sessionStorage.setItem("role", role);
+              sessionStorage.setItem("user", data.user); } catch (e) {}
+        showApp(data.user);
+      })
+      .catch(function () {
+        $("loginMsg").className = "msg bad";
+        $("loginMsg").textContent = "Could not reach the server.";
+      });
+  }
+
+  function showApp(user) {
+    $("loginBox").className = "box hidden";
+    $("appBox").className = "";
+    $("userName").textContent = user;
+    $("roleTag").textContent = role;
+    $("adminBox").className = (role === "Admin") ? "box" : "box hidden";
+    $("address").focus();
+    loadHistory();
+  }
+
+  function showLogin(message) {
+    token = "";
+    role = "";
+    try { sessionStorage.clear(); } catch (e) {}
+    $("appBox").className = "hidden";
+    $("loginBox").className = "box";
+    $("password").value = "";
+    $("loginMsg").className = "msg bad";
+    $("loginMsg").textContent = message || "";
+  }
+
+  function logout() {
+    fetch("/logout?token=" + encodeURIComponent(token)).then(function () { showLogin(""); });
+  }
+
+  function checkAddress() {
+    var address = $("address").value.trim();
+    if (address === "") { return; }
+
+    fetch("/check?url=" + encodeURIComponent(address) + "&token=" + encodeURIComponent(token))
+      .then(function (r) {
+        if (r.status === 401) { showLogin("Session expired, please log in again."); return null; }
+        return r.json();
+      })
+      .then(function (data) {
+        if (data === null) { return; }
+        showResult(data);
+        loadHistory();
+      })
+      .catch(function () {
+        showResult({ status: "INVALID", url: address, reason: "could not reach the server", ml: -1 });
+      });
+  }
+
+  function showResult(data) {
+    $("result").className = data.status;
+    $("result").style.display = "block";
+    $("status").textContent = data.status;
+    $("detail").textContent = data.url + "  (" + data.reason + ")";
+
+    var ml = $("ml");
+    if (data.ml >= 0) {
+      var percent = Math.round(data.ml * 100);
+      ml.textContent = "ML spam probability: " + percent + "%";
+      if (data.ml >= 0.8) {
+        ml.className = "warn";
+        ml.textContent += "  - WARNING: the ML model finds this URL suspicious (advisory only)";
+      } else {
+        ml.className = "";
+      }
+    } else {
+      ml.className = "";
+      ml.textContent = "";
+    }
+  }
+
+  function addEntry() {
+    var entry = $("newEntry").value.trim();
+    if (entry === "") { return; }
+
+    fetch("/add?url=" + encodeURIComponent(entry) + "&token=" + encodeURIComponent(token))
+      .then(function (r) {
+        if (r.status === 401) { showLogin("Session expired, please log in again."); return null; }
+        return r.json();
+      })
+      .then(function (data) {
+        if (data === null) { return; }
+        $("addMsg").className = data.ok ? "msg good" : "msg bad";
+        $("addMsg").textContent = data.message;
+        if (data.ok) { $("newEntry").value = ""; }
+      });
+  }
+
+  function loadHistory() {
+    fetch("/history?token=" + encodeURIComponent(token))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data === null) { return; }
+        $("history").innerHTML = "";
+        for (var i = data.history.length - 1; i >= 0; i--) {
+          var parts = data.history[i].split(" | ");
+          var li = document.createElement("li");
+          var tag = document.createElement("span");
+          tag.className = "tag-" + parts[1];
+          tag.textContent = parts[1];
+          li.appendChild(tag);
+          li.appendChild(document.createTextNode("  " + parts[2] + "   (" + parts[0] + ")"));
+          $("history").appendChild(li);
+        }
+      });
+  }
+
+  $("loginBtn").addEventListener("click", login);
+  $("password").addEventListener("keydown", function (e) { if (e.key === "Enter") { login(); } });
+  $("logoutBtn").addEventListener("click", logout);
+  $("checkBtn").addEventListener("click", checkAddress);
+  $("address").addEventListener("keydown", function (e) { if (e.key === "Enter") { checkAddress(); } });
+  $("addBtn").addEventListener("click", addEntry);
+  $("newEntry").addEventListener("keydown", function (e) { if (e.key === "Enter") { addEntry(); } });
+
+  try {
+    token = sessionStorage.getItem("token") || "";
+    role = sessionStorage.getItem("role") || "";
+    if (token !== "") {
+      fetch("/history?token=" + encodeURIComponent(token)).then(function (r) {
+        if (r.ok) { showApp(sessionStorage.getItem("user") || ""); } else { showLogin(""); }
+      });
+    }
+  } catch (e) {}
+</script>
+</body>
+</html>
